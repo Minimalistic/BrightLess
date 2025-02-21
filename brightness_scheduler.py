@@ -10,6 +10,7 @@ import threading
 import pystray
 from PIL import Image, ImageDraw
 import sys
+import math
 
 # Global variable to track brightness mode
 BRIGHTNESS_MODE = 'auto'
@@ -99,8 +100,7 @@ def get_sunrise_sunset_times(config):
 
 def get_current_brightness_preset(config, current_time):
     """
-    Determine the appropriate brightness level by combining location-based constraints
-    and time-based presets.
+    Determine the appropriate brightness level using a mathematical brightness function.
     
     Args:
         config (dict): Brightness configuration dictionary
@@ -109,55 +109,50 @@ def get_current_brightness_preset(config, current_time):
     Returns:
         int: Brightness level (0-100)
     """
-    # Get zipcode configuration and time presets
+    # Get zipcode configuration and brightness function
     zipcode_config = config.get('zipcode_config', {})
-    time_presets = config.get('time_presets', [])
+    brightness_func = config.get('brightness_function', {})
     
     # Get brightness modifiers, defaulting to full range if not specified
     min_brightness = zipcode_config.get('min_brightness_modifier', 1)
     max_brightness = zipcode_config.get('max_brightness_modifier', 100)
     
-    # Check if sunrise/sunset configuration is enabled
+    # Get sunrise/sunset times if enabled
     sunrise_sunset_times = get_sunrise_sunset_times(config)
     
-    # Find the matching time preset
-    matching_preset = None
-    for preset in time_presets:
-        start_time = datetime.strptime(preset['start_time'], '%H:%M').time()
-        end_time = datetime.strptime(preset['end_time'], '%H:%M').time()
+    # Default base brightness calculation using sinusoidal function
+    if brightness_func.get('type') == 'sinusoidal':
+        params = brightness_func.get('parameters', {})
+        amplitude = params.get('brightness_range_amplitude', 45)
+        midpoint = params.get('base_brightness_level', 50)
+        period = params.get('daily_cycle_hours', 24)
+        phase_shift = params.get('day_night_curve_offset', -6)
         
-        # Handle time ranges that cross midnight
-        if start_time <= end_time:
-            in_range = start_time <= current_time < end_time
-        else:
-            in_range = current_time >= start_time or current_time < end_time
+        # Convert current time to hours since midnight
+        hours_since_midnight = current_time.hour + current_time.minute / 60
         
-        if in_range:
-            matching_preset = preset
-            break
+        # Apply phase shift and calculate sinusoidal brightness
+        base_brightness = midpoint + amplitude * math.sin(
+            2 * math.pi * (hours_since_midnight + phase_shift) / period
+        )
+    else:
+        base_brightness = 50  # Fallback default
     
-    # Default brightness if no preset found
-    base_brightness = 50
-    
-    # Use sunrise/sunset times if enabled and available
+    # Override with sunrise/sunset times if enabled
     if sunrise_sunset_times and zipcode_config.get('use_sunrise_sunset', False):
         sunrise_time, sunset_time = sunrise_sunset_times
         
         if sunrise_time <= current_time < sunset_time:
-            base_brightness = zipcode_config.get('sunrise_brightness', base_brightness)
+            base_brightness = max(base_brightness, zipcode_config.get('sunrise_brightness', base_brightness))
         else:
-            base_brightness = zipcode_config.get('sunset_brightness', base_brightness)
-    
-    # If a time preset is found, use its brightness
-    if matching_preset:
-        base_brightness = matching_preset['brightness']
+            base_brightness = min(base_brightness, zipcode_config.get('sunset_brightness', base_brightness))
     
     # Apply min and max brightness constraints
     brightness = min(max_brightness, max(min_brightness, base_brightness))
     
-    print(f"Brightness calculation - Current time: {current_time}, Base brightness: {base_brightness}, Final brightness: {brightness}")
+    print(f"Brightness calculation - Current time: {current_time}, Mathematical brightness: {brightness}")
     
-    return brightness
+    return round(brightness)
 
 def get_current_brightness():
     """

@@ -1,66 +1,13 @@
 {
-    "time_presets": [
-        {
-            "start_time": "00:00",
-            "end_time": "05:00",
-            "brightness": 10
-        },
-        {
-            "start_time": "05:00",
-            "end_time": "06:00", 
-            "brightness": 20
-        },
-        {
-            "start_time": "06:00",
-            "end_time": "07:00", 
-            "brightness": 40
-        },
-        {
-            "start_time": "07:00",
-            "end_time": "09:00", 
-            "brightness": 60
-        },
-        {
-            "start_time": "09:00",
-            "end_time": "12:00",
-            "brightness": 80
-        },
-        {
-            "start_time": "12:00",
-            "end_time": "15:00",
-            "brightness": 100
-        },
-        {
-            "start_time": "15:00",
-            "end_time": "17:00",
-            "brightness": 80
-        },
-        {
-            "start_time": "17:00",
-            "end_time": "18:00",
-            "brightness": 60
-        },
-        {
-            "start_time": "18:00",
-            "end_time": "19:00",
-            "brightness": 40
-        },
-        {
-            "start_time": "19:00",
-            "end_time": "20:00",
-            "brightness": 30
-        },
-        {
-            "start_time": "20:00",
-            "end_time": "22:00",
-            "brightness": 20
-        },
-        {
-            "start_time": "22:00",
-            "end_time": "00:00",
-            "brightness": 10
+    "brightness_function": {
+        "type": "sinusoidal",
+        "parameters": {
+            "brightness_range_amplitude": 45,
+            "base_brightness_level": 50,
+            "daily_cycle_hours": 24,
+            "day_night_curve_offset": -6
         }
-    ],
+    },
     "zipcode_config": {
         "zipcode": 55804,
         "use_sunrise_sunset": true,
