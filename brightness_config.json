@@ -14,6 +14,6 @@
         "sunrise_brightness": 40,
         "sunset_brightness": 1,
         "min_brightness_modifier": 1,
-        "max_brightness_modifier": 50
+        "max_brightness_modifier": 100
     }
 }
