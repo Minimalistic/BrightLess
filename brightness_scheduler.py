@@ -11,6 +11,9 @@ import pystray
 from PIL import Image, ImageDraw
 import sys
 
+# Global variable to track brightness mode
+BRIGHTNESS_MODE = 'auto'
+
 def load_brightness_config(config_path='brightness_config.json'):
     """Load brightness configuration from JSON file."""
     with open(config_path, 'r') as f:
@@ -222,6 +225,34 @@ def smooth_brightness_transition(start_brightness, target_brightness, duration=3
         # Fallback to direct brightness set if transition fails
         sbc.set_brightness(target_brightness)
 
+def toggle_brightness_mode(mode='auto'):
+    """
+    Toggle between manual and auto brightness modes.
+    
+    Args:
+        mode (str): Mode to switch to. Default is 'auto'.
+    """
+    global BRIGHTNESS_MODE
+    BRIGHTNESS_MODE = mode
+    
+    if mode == 'auto':
+        # Load configuration
+        config = load_brightness_config()
+        
+        # Get current time and corresponding brightness preset
+        current_time = datetime.now(zoneinfo.ZoneInfo(config.get('timezone', 'US/Central'))).time()
+        target_brightness = get_current_brightness_preset(config, current_time)
+        
+        # Immediately set brightness to current time-based preset
+        try:
+            current_brightness = get_current_brightness()
+            smooth_brightness_transition(current_brightness, target_brightness)
+            print(f"Switched to auto brightness mode. Setting brightness to {target_brightness}%")
+        except Exception as e:
+            print(f"Error reverting to auto brightness: {e}")
+    else:
+        print(f"Switched to manual brightness mode: {mode}")
+
 def create_tray_icon():
     """Create a system tray icon with a menu."""
     def create_image():
@@ -237,6 +268,8 @@ def create_tray_icon():
 
     def manual_brightness(brightness_level):
         try:
+            # Switch to manual mode when manually setting brightness
+            toggle_brightness_mode(f'{brightness_level}%')
             sbc.set_brightness(brightness_level)
             print(f"Manually set brightness to {brightness_level}%")
         except Exception as e:
@@ -251,6 +284,8 @@ def create_tray_icon():
         pystray.MenuItem("75% Brightness", lambda: manual_brightness(75)),
         pystray.MenuItem("50% Brightness", lambda: manual_brightness(50)),
         pystray.MenuItem("25% Brightness", lambda: manual_brightness(25)),
+        pystray.MenuItem("1% Brightness", lambda: manual_brightness(1)),
+        pystray.MenuItem("Re-enable Auto Brightness", lambda: toggle_brightness_mode()),
         pystray.MenuItem("Exit", on_exit)
     )
     
@@ -273,14 +308,16 @@ def main():
     
     try:
         while True:
-            # Existing brightness scheduling logic
-            current_time = datetime.now(zoneinfo.ZoneInfo(config.get('timezone', 'US/Central'))).time()
-            target_brightness = get_current_brightness_preset(config, current_time)
-            current_brightness = get_current_brightness()
-            
-            # Smoothly transition brightness if needed
-            if abs(current_brightness - target_brightness) > 5:
-                smooth_brightness_transition(current_brightness, target_brightness)
+            # Check if we're in auto mode
+            if BRIGHTNESS_MODE == 'auto':
+                # Existing brightness scheduling logic
+                current_time = datetime.now(zoneinfo.ZoneInfo(config.get('timezone', 'US/Central'))).time()
+                target_brightness = get_current_brightness_preset(config, current_time)
+                current_brightness = get_current_brightness()
+                
+                # Smoothly transition brightness if needed
+                if abs(current_brightness - target_brightness) > 5:
+                    smooth_brightness_transition(current_brightness, target_brightness)
             
             # Sleep for a while before next check
             py_time.sleep(60)  # Check every minute
