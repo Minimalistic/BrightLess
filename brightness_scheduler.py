@@ -8,7 +8,7 @@ from astral.sun import sun
 import zoneinfo
 import threading
 import pystray
-from PIL import Image, ImageDraw
+from PIL import Image
 import sys
 import math
 
@@ -250,13 +250,6 @@ def toggle_brightness_mode(mode='auto'):
 
 def create_tray_icon():
     """Create a system tray icon with a menu."""
-    def create_image():
-        # Create a blank image for the tray icon
-        image = Image.new('RGB', (64, 64), color = (73, 109, 137))
-        d = ImageDraw.Draw(image)
-        d.rectangle([0, 0, 63, 63], outline=(255, 255, 255))
-        return image
-
     def on_exit(icon):
         icon.stop()
         sys.exit(0)
@@ -270,8 +263,8 @@ def create_tray_icon():
         except Exception as e:
             print(f"Error setting brightness: {e}")
 
-    # Create the system tray icon
-    icon = pystray.Icon("ChromaDim", create_image())
+    # Create the system tray icon with the custom brightness icon
+    icon = pystray.Icon("ChromaDim", Image.open("brightness_icon.ico"))
     
     # Define menu items
     icon.menu = pystray.Menu(
