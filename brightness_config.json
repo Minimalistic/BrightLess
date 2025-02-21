@@ -1,0 +1,35 @@
+{
+    "time_presets": [
+        {
+            "start_time": "00:00",
+            "end_time": "06:00",
+            "brightness": 10
+        },
+        {
+            "start_time": "06:00",
+            "end_time": "09:00", 
+            "brightness": 40
+        },
+        {
+            "start_time": "09:00",
+            "end_time": "18:00",
+            "brightness": 70
+        },
+        {
+            "start_time": "18:00",
+            "end_time": "22:00",
+            "brightness": 40
+        },
+        {
+            "start_time": "22:00",
+            "end_time": "00:00",
+            "brightness": 10
+        }
+    ],
+    "zipcode_config": {
+        "zipcode": 55804,
+        "use_sunrise_sunset": true,
+        "sunrise_brightness": 40,
+        "sunset_brightness": 20
+    }
+}
