@@ -6,6 +6,10 @@ import requests
 from astral import LocationInfo
 from astral.sun import sun
 import zoneinfo
+import threading
+import pystray
+from PIL import Image, ImageDraw
+import sys
 
 def load_brightness_config(config_path='brightness_config.json'):
     """Load brightness configuration from JSON file."""
@@ -218,22 +222,72 @@ def smooth_brightness_transition(start_brightness, target_brightness, duration=3
         # Fallback to direct brightness set if transition fails
         sbc.set_brightness(target_brightness)
 
-def main():
-    """Main function to set brightness based on current time."""
-    try:
-        config = load_brightness_config()
-        current_time = datetime.now().time()
-        recommended_brightness = get_current_brightness_preset(config, current_time)
-        
-        # Get current brightness
-        current_brightness = get_current_brightness()
-        
-        smooth_brightness_transition(current_brightness, recommended_brightness)
+def create_tray_icon():
+    """Create a system tray icon with a menu."""
+    def create_image():
+        # Create a blank image for the tray icon
+        image = Image.new('RGB', (64, 64), color = (73, 109, 137))
+        d = ImageDraw.Draw(image)
+        d.rectangle([0, 0, 63, 63], outline=(255, 255, 255))
+        return image
 
-    except Exception as e:
-        print(f"Error in main brightness scheduling: {e}")
-        # Fallback to a safe default brightness if something goes wrong
-        sbc.set_brightness(50)
+    def on_exit(icon):
+        icon.stop()
+        sys.exit(0)
+
+    def manual_brightness(brightness_level):
+        try:
+            sbc.set_brightness(brightness_level)
+            print(f"Manually set brightness to {brightness_level}%")
+        except Exception as e:
+            print(f"Error setting brightness: {e}")
+
+    # Create the system tray icon
+    icon = pystray.Icon("ChromaDim", create_image())
+    
+    # Define menu items
+    icon.menu = pystray.Menu(
+        pystray.MenuItem("100% Brightness", lambda: manual_brightness(100)),
+        pystray.MenuItem("75% Brightness", lambda: manual_brightness(75)),
+        pystray.MenuItem("50% Brightness", lambda: manual_brightness(50)),
+        pystray.MenuItem("25% Brightness", lambda: manual_brightness(25)),
+        pystray.MenuItem("Exit", on_exit)
+    )
+    
+    return icon
+
+def run_tray_icon(icon):
+    """Run the system tray icon in a separate thread."""
+    icon.run()
+
+def main():
+    # Load configuration
+    config = load_brightness_config()
+    
+    # Create system tray icon
+    tray_icon = create_tray_icon()
+    
+    # Start tray icon in a separate thread
+    tray_thread = threading.Thread(target=run_tray_icon, args=(tray_icon,), daemon=True)
+    tray_thread.start()
+    
+    try:
+        while True:
+            # Existing brightness scheduling logic
+            current_time = datetime.now(zoneinfo.ZoneInfo(config.get('timezone', 'US/Central'))).time()
+            target_brightness = get_current_brightness_preset(config, current_time)
+            current_brightness = get_current_brightness()
+            
+            # Smoothly transition brightness if needed
+            if abs(current_brightness - target_brightness) > 5:
+                smooth_brightness_transition(current_brightness, target_brightness)
+            
+            # Sleep for a while before next check
+            py_time.sleep(60)  # Check every minute
+    except KeyboardInterrupt:
+        print("Brightness scheduler stopped.")
+    finally:
+        tray_icon.stop()
 
 if __name__ == "__main__":
     main()
