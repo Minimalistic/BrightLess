@@ -159,7 +159,7 @@ def get_current_brightness():
     Get the current screen brightness.
     
     Returns:
-        int: Current brightness level (0-100)
+        int or None: Current brightness level (0-100) or None if unable to retrieve
     """
     try:
         # Get brightness for all displays
@@ -171,7 +171,7 @@ def get_current_brightness():
             print(f"Current screen brightness: {current_brightness}%")
             return current_brightness
         else:
-            print("No displays found.")
+            print("No displays found or screens might be sleeping.")
             return None
     except Exception as e:
         print(f"Error getting current brightness: {e}")
@@ -303,9 +303,15 @@ def main():
                 target_brightness = get_current_brightness_preset(config, current_time)
                 current_brightness = get_current_brightness()
                 
-                # Smoothly transition brightness if needed
-                if abs(current_brightness - target_brightness) > 5:
-                    smooth_brightness_transition(current_brightness, target_brightness)
+                # Only adjust brightness if current_brightness is not None
+                if current_brightness is not None:
+                    # Smoothly transition brightness if needed
+                    if abs(current_brightness - target_brightness) > 5:
+                        smooth_brightness_transition(current_brightness, target_brightness)
+                    else:
+                        print(f"Brightness stable at {current_brightness}%")
+                else:
+                    print("Skipping brightness adjustment - screens may be sleeping.")
             
             # Sleep for a while before next check
             py_time.sleep(60)  # Check every minute
