@@ -1,8 +1,8 @@
-# ChromaDim: Intelligent Screen Brightness Management
+# BrightLess: Intelligent Screen Brightness Management
 
 ## Overview
 
-ChromaDim is a screen brightness management tool that automatically adjusts your screen's brightness based on time of day, location, and sunrise/sunset cycles.
+BrightLess is a screen brightness management tool that automatically adjusts your screen's brightness based on time of day, location, and sunrise/sunset cycles.
 
 ## Features
 
