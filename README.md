@@ -20,6 +20,14 @@ BrightLess is a screen brightness management tool that automatically adjusts you
   - Toggle between automatic and manual brightness modes
   - Quick access to brightness settings via system tray icon
 
+## Planned Features
+
+- 💡 Yoctolight V5 Ambient Light Sensor Integration
+  - Optional dynamic backlight adjustment based on room's ambient light
+  - Uses [Yoctopuce Yocto-Light V5](https://www.yoctopuce.com/EN/products/usb-environmental-sensors/yocto-light-v5) sensor
+  - Automatically adjust screen brightness to match surrounding light conditions
+  - Provide configurable sensitivity and response curve
+
 ## Prerequisites
 
 - Python 3.8+
