@@ -1,4 +1,4 @@
-screen-brightness-control==0.14.0
+screen-brightness-control==0.27.1
 requests==2.33.0
 astral==3.2
 pystray==0.19.4
