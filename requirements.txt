@@ -1,5 +1,5 @@
 screen-brightness-control==0.14.0
-requests==2.33.0
+requests==2.33.1
 astral==3.2
 pystray==0.19.4
 Pillow==12.2.0
